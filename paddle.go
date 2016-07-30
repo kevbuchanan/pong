@@ -8,12 +8,15 @@ const (
 )
 
 type Paddle struct {
-	Position int
-	input    chan Direction
-	window   Window
-	column   int
-	min      int
-	max      int
+	height int
+	width  int
+	side   Side
+	row    int
+	window Window
+	input  chan Direction
+	column int
+	min    int
+	max    int
 }
 
 func (paddle Paddle) Up() {
@@ -24,9 +27,25 @@ func (paddle Paddle) Down() {
 	paddle.input <- Down
 }
 
+func (paddle Paddle) Face() int {
+	if paddle.side == Left {
+		return paddle.column + paddle.width
+	} else {
+		return paddle.column
+	}
+}
+
+func (paddle Paddle) Top() int {
+	return paddle.row
+}
+
+func (paddle Paddle) Bottom() int {
+	return paddle.row + paddle.height
+}
+
 func (paddle *Paddle) Update() {
 	for direction := range paddle.input {
-		paddle.Position = direction.Change(paddle.Position, paddle.min, paddle.max)
+		paddle.row = direction.Change(paddle.row, paddle.min, paddle.max)
 	}
 }
 
@@ -35,7 +54,7 @@ func (paddle Paddle) Collide() {
 
 func (paddle Paddle) Draw() Window {
 	paddle.window.ColorOn(1)
-	paddle.window.Move(paddle.Position, paddle.column)
+	paddle.window.Move(paddle.row, paddle.column)
 	paddle.window.Print(0, 0, "||")
 	paddle.window.Print(1, 0, "||")
 	paddle.window.Print(2, 0, "||")
@@ -50,16 +69,19 @@ func NewPaddle(side Side, ui Ui) Paddle {
 	maxRow, maxColumn := ui.MaxRowAndColumn()
 	var column int
 	if side == Left {
-		column = 0
+		column = 5
 	} else {
-		column = maxColumn - width
+		column = maxColumn - width - 5
 	}
 	return Paddle{
-		input:    make(chan Direction, 10),
-		window:   ui.NewWindow(height, width),
-		Position: 0,
-		column:   column,
-		min:      0,
-		max:      maxRow - height,
+		height: height,
+		width:  width,
+		side:   side,
+		window: ui.NewWindow(height, width),
+		input:  make(chan Direction, 10),
+		row:    maxRow / 2,
+		column: column,
+		min:    0,
+		max:    maxRow - height,
 	}
 }

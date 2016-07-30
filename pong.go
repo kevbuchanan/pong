@@ -9,13 +9,8 @@ import (
 type Pong struct {
 	Player1 Player
 	Player2 Player
+	Ball    Ball
 	Ui      Ui
-}
-
-type GameObject interface {
-	Update()
-	Collide(others []GameObject)
-	Draw() Window
 }
 
 type Window interface {
@@ -57,15 +52,14 @@ func listen(ui Ui, player1 Player, player2 Player) {
 func (game Pong) Start() {
 	go game.Player1.Paddle.Update()
 	go game.Player2.Paddle.Update()
+	go game.Ball.Update(&game.Player1.Paddle, &game.Player2.Paddle)
 	go listen(game.Ui, game.Player1, game.Player2)
 
 	ticks := time.NewTicker(time.Second / 16)
 
 	for range ticks.C {
-		log.Println(game.Player1.Paddle.Position)
-		log.Println(game.Player2.Paddle.Position)
-
 		game.Ui.Erase()
+		game.Ui.Draw(game.Ball.Draw())
 		game.Ui.Draw(game.Player1.Paddle.Draw())
 		game.Ui.Draw(game.Player2.Paddle.Draw())
 		game.Ui.Refresh()
@@ -84,9 +78,12 @@ func NewGame() Pong {
 	paddle2 := NewPaddle(Right, ui)
 	player2 := NewPlayer('j', 'k', paddle2)
 
+	ball := NewBall(ui)
+
 	return Pong{
 		Player1: player1,
 		Player2: player2,
+		Ball:    ball,
 		Ui:      ui,
 	}
 }
