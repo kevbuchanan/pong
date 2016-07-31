@@ -8,15 +8,32 @@ const (
 )
 
 type Paddle struct {
-	height int
-	width  int
-	side   Side
-	row    int
-	window Window
-	input  chan Direction
-	column int
-	min    int
-	max    int
+	Direction Direction
+	height    int
+	width     int
+	side      Side
+	row       int
+	window    Window
+	input     chan Direction
+	column    int
+	min       int
+	max       int
+}
+
+func (paddle Paddle) Stopped() {
+	paddle.input <- Stopped
+}
+
+func (paddle Paddle) IsStopped() bool {
+	return paddle.Direction == Stopped
+}
+
+func (paddle Paddle) IsMovingUp() bool {
+	return paddle.Direction == Up
+}
+
+func (paddle Paddle) IsMovingDown() bool {
+	return paddle.Direction == Down
 }
 
 func (paddle Paddle) Up() {
@@ -45,11 +62,11 @@ func (paddle Paddle) Bottom() int {
 
 func (paddle *Paddle) Update() {
 	for direction := range paddle.input {
-		paddle.row = direction.Change(paddle.row, paddle.min, paddle.max)
+		if direction != Stopped {
+			paddle.row = direction.Change(paddle.row, paddle.min, paddle.max)
+		}
+		paddle.Direction = direction
 	}
-}
-
-func (paddle Paddle) Collide() {
 }
 
 func (paddle Paddle) Draw() Window {
@@ -74,14 +91,15 @@ func NewPaddle(side Side, ui Ui) Paddle {
 		column = maxColumn - width - 5
 	}
 	return Paddle{
-		height: height,
-		width:  width,
-		side:   side,
-		window: ui.NewWindow(height, width),
-		input:  make(chan Direction, 10),
-		row:    maxRow / 2,
-		column: column,
-		min:    0,
-		max:    maxRow - height,
+		Direction: Stopped,
+		height:    height,
+		width:     width,
+		side:      side,
+		window:    ui.NewWindow(height, width),
+		input:     make(chan Direction, 10),
+		row:       maxRow / 2,
+		column:    column,
+		min:       0,
+		max:       maxRow - height,
 	}
 }

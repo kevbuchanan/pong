@@ -45,6 +45,9 @@ func listen(ui Ui, player1 Player, player2 Player) {
 			player2.Paddle.Up()
 		case player2.DownKey:
 			player2.Paddle.Down()
+		case 0:
+			player1.Paddle.Stopped()
+			player2.Paddle.Stopped()
 		}
 	}
 }
@@ -76,7 +79,7 @@ func NewGame() Pong {
 	player1 := NewPlayer('f', 'd', paddle1)
 
 	paddle2 := NewPaddle(Right, ui)
-	player2 := NewPlayer('j', 'k', paddle2)
+	player2 := NewPlayer('k', 'j', paddle2)
 
 	ball := NewBall(ui)
 
